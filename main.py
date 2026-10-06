@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 from flask import Flask
 
-# 1. 建立簡單的 Flask 網頁伺服器供保活檢查
+# 1. Flask 網頁伺服器（保活機制）
 app = Flask('')
 
 
@@ -15,7 +15,6 @@ def home():
 
 
 def run_web():
-    # Render 會自動提供 PORT 環境變數
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
 
@@ -26,11 +25,11 @@ def keep_alive():
 
 
 # 2. Discord Bot 設定
-prefix = ']]'
-list_separator = ','
+# 將前綴改為感嘆號 !
+prefix = '!'
 
 intents = discord.Intents.default()
-intents.message_content = True
+intents.message_content = True  # 必須在 Discord Developer Portal 開啟 Message Content Intent
 
 bot = commands.Bot(command_prefix=prefix, intents=intents)
 
@@ -42,15 +41,23 @@ async def on_ready():
 
 @bot.command()
 async def choose(ctx, *, names: str):
-    selection = choice(names.split(list_separator))
-    await ctx.send(selection.strip())
+    # 同時替換中文逗號為英文逗號，避免手機輸入錯誤
+    normalized_names = names.replace('，', ',')
+    options = [item.strip() for item in normalized_names.split(',') if item.strip()]
+
+    if not options:
+        await ctx.send("請提供至少一個選項！範例：`!choose 珍珠奶茶, 炒飯, 牛排`")
+        return
+
+    selection = choice(options)
+    await ctx.send(f'🎲 隨機選擇結果：**{selection}**')
 
 
-# 3. 啟動網頁伺服器與機器人
+# 3. 啟動服務
 if __name__ == "__main__":
-    keep_alive()  # 背景啟動 Flask
+    keep_alive()
     TOKEN = os.getenv("TOKEN")
     if TOKEN:
         bot.run(TOKEN)
     else:
-        print("錯誤：未填寫 TOKEN 環境變數！")
+        print("錯誤：未在環境變數中填寫 TOKEN！")
