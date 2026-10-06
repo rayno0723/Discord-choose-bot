@@ -25,11 +25,10 @@ def keep_alive():
 
 
 # 2. Discord Bot 設定
-# 將前綴改為感嘆號 !
 prefix = '!'
 
 intents = discord.Intents.default()
-intents.message_content = True  # 必須在 Discord Developer Portal 開啟 Message Content Intent
+intents.message_content = True
 
 bot = commands.Bot(command_prefix=prefix, intents=intents)
 
@@ -41,16 +40,17 @@ async def on_ready():
 
 @bot.command()
 async def choose(ctx, *, names: str):
-    # 同時替換中文逗號為英文逗號，避免手機輸入錯誤
-    normalized_names = names.replace('，', ',')
-    options = [item.strip() for item in normalized_names.split(',') if item.strip()]
+    # 將中文與英文逗號均轉換為空格，並依空白切割選項
+    normalized_names = names.replace('，', ' ').replace(',', ' ')
+    options = [item for item in normalized_names.split() if item]
 
     if not options:
-        await ctx.send("請提供至少一個選項！範例：`!choose 珍珠奶茶, 炒飯, 牛排`")
+        await ctx.send("請提供至少一個選項！範例：`!choose 珍珠奶茶 炒飯 牛排`")
         return
 
     selection = choice(options)
-    await ctx.send(f'🎲 隨機選擇結果：**{selection}**')
+    # 直接發送選中的內容
+    await ctx.send(selection)
 
 
 # 3. 啟動服務
