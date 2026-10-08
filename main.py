@@ -45,18 +45,40 @@ async def on_ready():
     )
     # -----------------------------------------------------------
 
-@bot.command()
-async def choose(ctx, *, names: str):
+# ---------------------------------------------------------
+# 4A. 傳統前綴指令 (!choose)
+# ---------------------------------------------------------
+@bot.command(name="choose")
+async def prefix_choose(ctx, *, names: str):
     normalized_names = names.replace('，', ' ').replace(',', ' ')
     options = [item for item in normalized_names.split() if item]
 
     if not options:
-        await ctx.send("請提供至少一個選項！範例：`!choose 珍珠奶茶 炒飯 牛排`")
+        await ctx.send("請提供至少一個選項！範例：`!choose 1 2 3`")
         return
 
     selection = choice(options)
+    # 傳統前綴指令直接輸出選擇結果
     await ctx.send(selection)
 
+# ---------------------------------------------------------
+# 4B. 斜線指令 (/choose)
+# ---------------------------------------------------------
+@bot.tree.command(name="choose", description="隨機選擇一個選項（用空格或逗號隔開）")
+@app_commands.describe(options="請輸入選項，例如：1 2 3")
+async def slash_choose(interaction: discord.Interaction, options: str):
+    normalized_names = options.replace('，', ' ').replace(',', ' ')
+    choices_list = [item for item in normalized_names.split() if item]
+
+    if not choices_list:
+        await interaction.response.send_message("請提供至少一個選項！", ephemeral=True)
+        return
+
+    selection = choice(choices_list)
+    
+    # 第一行顯示原始指令文字，第二行顯示選中的結果
+    message_content = f"!choose {options}\n{selection}"
+    await interaction.response.send_message(message_content)
 # 3. 主程式啟動
 if __name__ == "__main__":
     TOKEN = os.getenv("TOKEN")
