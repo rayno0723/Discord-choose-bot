@@ -23,34 +23,49 @@ async def start_web_server():
 # 2. Discord Bot 設定與自訂類別
 class CustomBot(commands.Bot):
     async def setup_hook(self):
-        # 啟動背景網頁伺服器
         await start_web_server()
-        
-        # 同步斜線指令到 Discord（讓 Discord 後台抓到全新的 /choose 指令）
         print("正在同步斜線指令到 Discord...")
         synced = await self.tree.sync()
         print(f"成功同步了 {len(synced)} 個斜線指令！")
 
-# 開啟基本權限（斜線指令不需要 Message Content Intent）
+# 傳統前綴指令需要讀取訊息內容的權限 (Message Content Intent)
 intents = discord.Intents.default()
-bot = CustomBot(command_prefix="!", intents=intents)
+intents.message_content = True
+
+prefix = '!'
+bot = CustomBot(command_prefix=prefix, intents=intents)
 
 # 3. 機器人上線事件與自訂動態狀態
 @bot.event
 async def on_ready():
     print(f'機器人已成功登入為 {bot.user}')
-    
-    # 設定自訂「正在遊玩」狀態
     await bot.change_presence(
-        activity=discord.Game(name="/choose 隨機選擇"),
+        activity=discord.Game(name="!choose 或 /choose 隨機選擇"),
         status=discord.Status.online
     )
 
-# 4. 新增斜線指令 (/choose)
+# ---------------------------------------------------------
+# 4A. 傳統前綴指令 (!choose)
+# ---------------------------------------------------------
+@bot.command(name="choose")
+async def prefix_choose(ctx, *, names: str):
+    normalized_names = names.replace('，', ' ').replace(',', ' ')
+    options = [item for item in normalized_names.split() if item]
+
+    if not options:
+        await ctx.send("請提供至少一個選項！範例：`!choose 珍珠奶茶 炒飯 牛排`")
+        return
+
+    selection = choice(options)
+    # 直接輸出選中的內容
+    await ctx.send(selection)
+
+# ---------------------------------------------------------
+# 4B. 斜線指令 (/choose)
+# ---------------------------------------------------------
 @bot.tree.command(name="choose", description="隨機選擇一個選項（用空格或逗號隔開）")
 @app_commands.describe(options="請輸入選項，例如：珍珠奶茶 炒飯 牛排")
-async def choose(interaction: discord.Interaction, options: str):
-    # 將中文與英文逗號均轉換為空格，並依空白切割選項
+async def slash_choose(interaction: discord.Interaction, options: str):
     normalized_names = options.replace('，', ' ').replace(',', ' ')
     choices_list = [item for item in normalized_names.split() if item]
 
@@ -60,9 +75,9 @@ async def choose(interaction: discord.Interaction, options: str):
 
     selection = choice(choices_list)
     
-    # 直接發送隨機挑選出的內容
-    # Discord 介面會自動在訊息上方標註「使用者使用了 /choose options: ...」
-    await interaction.response.send_message(selection)
+    # 斜線指令輸出格式
+    message_content = f"{interaction.user.mention}: /choose {options}\n{selection}"
+    await interaction.response.send_message(message_content)
 
 # 5. 主程式啟動
 if __name__ == "__main__":
