@@ -24,7 +24,6 @@ async def start_web_server():
 prefix = '!'
 
 intents = discord.Intents.default()
-intents.message_content = True
 
 class CustomBot(commands.Bot):
     async def setup_hook(self):
