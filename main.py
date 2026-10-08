@@ -64,21 +64,22 @@ async def prefix_choose(ctx, *, names: str):
 # 4B. 斜線指令 (/choose)
 # ---------------------------------------------------------
 @bot.tree.command(name="choose", description="隨機選擇一個選項（用空格或逗號隔開）")
-@app_commands.describe(options="請輸入選項，例如：珍珠奶茶 炒飯 牛排")
+@app_commands.describe(options="請輸入選項，例如：1 2 3")
 async def slash_choose(interaction: discord.Interaction, options: str):
     normalized_names = options.replace('，', ' ').replace(',', ' ')
     choices_list = [item for item in normalized_names.split() if item]
 
     if not choices_list:
-        await interaction.response.send_message("請提供至少一個選項！", ephemeral=True)
+        await interaction.response.send_message("請提供至少一個選項！",
+                                                ephemeral=True)
         return
 
     selection = choice(choices_list)
-    
-    # 斜線指令輸出格式
-    message_content = f"{interaction.user.mention}: /choose {options}\n{selection}"
-    await interaction.response.send_message(message_content)
 
+    # 第一行偽裝成 !choose 指令，第二行輸出隨機結果
+    message_content = f"!choose {options}\n{selection}"
+
+    await interaction.response.send_message(message_content)
 # 5. 主程式啟動
 if __name__ == "__main__":
     TOKEN = os.getenv("TOKEN")
