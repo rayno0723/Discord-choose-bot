@@ -28,7 +28,7 @@ class CustomBot(commands.Bot):
         synced = await self.tree.sync()
         print(f"成功同步了 {len(synced)} 個斜線指令！")
 
-# 傳統前綴指令需要讀取訊息內容的權限 (Message Content Intent)
+# 傳統前綴指令需要 Message Content Intent 權限
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -53,17 +53,16 @@ async def prefix_choose(ctx, *, names: str):
     options = [item for item in normalized_names.split() if item]
 
     if not options:
-        await ctx.send("請提供至少一個選項！範例：`!choose 珍珠奶茶 炒飯 牛排`")
+        await ctx.send("請提供至少一個選項！範例：`!choose 1 2 3`")
         return
 
     selection = choice(options)
-    # 直接輸出選中的內容
+    # 傳統前綴指令直接輸出選擇結果
     await ctx.send(selection)
 
 # ---------------------------------------------------------
 # 4B. 斜線指令 (/choose)
 # ---------------------------------------------------------
-# 斜線指令 (/choose)
 @bot.tree.command(name="choose", description="隨機選擇一個選項（用空格或逗號隔開）")
 @app_commands.describe(options="請輸入選項，例如：1 2 3")
 async def slash_choose(interaction: discord.Interaction, options: str):
@@ -75,11 +74,11 @@ async def slash_choose(interaction: discord.Interaction, options: str):
         return
 
     selection = choice(choices_list)
-
-    # 第一行顯示原始指令格式，第二行顯示選擇結果
+    
+    # 第一行顯示原始指令文字，第二行顯示選中的結果
     message_content = f"!choose {options}\n{selection}"
-
     await interaction.response.send_message(message_content)
+
 # 5. 主程式啟動
 if __name__ == "__main__":
     TOKEN = os.getenv("TOKEN")
