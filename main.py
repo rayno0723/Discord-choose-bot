@@ -63,6 +63,7 @@ async def prefix_choose(ctx, *, names: str):
 # ---------------------------------------------------------
 # 4B. 斜線指令 (/choose)
 # ---------------------------------------------------------
+# 斜線指令 (/choose)
 @bot.tree.command(name="choose", description="隨機選擇一個選項（用空格或逗號隔開）")
 @app_commands.describe(options="請輸入選項，例如：1 2 3")
 async def slash_choose(interaction: discord.Interaction, options: str):
@@ -70,13 +71,12 @@ async def slash_choose(interaction: discord.Interaction, options: str):
     choices_list = [item for item in normalized_names.split() if item]
 
     if not choices_list:
-        await interaction.response.send_message("請提供至少一個選項！",
-                                                ephemeral=True)
+        await interaction.response.send_message("請提供至少一個選項！", ephemeral=True)
         return
 
     selection = choice(choices_list)
 
-    # 第一行偽裝成 !choose 指令，第二行輸出隨機結果
+    # 第一行顯示原始指令格式，第二行顯示選擇結果
     message_content = f"!choose {options}\n{selection}"
 
     await interaction.response.send_message(message_content)
