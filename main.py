@@ -3,6 +3,7 @@ from random import choice
 from aiohttp import web
 import discord
 from discord.ext import commands
+from discord import app_commands
 
 # 1. HTTP 網頁伺服器（供 UptimeRobot 保活）
 async def handle_ping(request):
