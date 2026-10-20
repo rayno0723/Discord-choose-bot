@@ -44,25 +44,7 @@ async def on_ready():
         status=discord.Status.online  # 保持線上綠燈
     )
     # -----------------------------------------------------------
-
-# ---------------------------------------------------------
-# 4A. 傳統前綴指令 (!choose)
-# ---------------------------------------------------------
-@bot.command(name="choose")
-async def prefix_choose(ctx, *, names: str):
-    normalized_names = names.replace('，', ' ').replace(',', ' ')
-    options = [item for item in normalized_names.split() if item]
-
-    if not options:
-        await ctx.send("請提供至少一個選項！範例：`!choose 1 2 3`")
-        return
-
-    selection = choice(options)
-    # 傳統前綴指令直接輸出選擇結果
-    await ctx.send(selection)
-
-# ---------------------------------------------------------
-# 4B. 斜線指令 (/choose)
+# 斜線指令 (/choose)
 # ---------------------------------------------------------
 @bot.tree.command(name="choose", description="隨機選擇一個選項（用空格或逗號隔開）")
 @app_commands.describe(options="請輸入選項，例如：1 2 3")
