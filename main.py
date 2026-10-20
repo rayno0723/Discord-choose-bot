@@ -2,8 +2,8 @@ import os
 from random import choice
 from aiohttp import web
 import discord
-from discord.ext import commands
 from discord import app_commands
+from discord.ext import commands
 
 # 1. HTTP 網頁伺服器（供 UptimeRobot 保活）
 async def handle_ping(request):
@@ -21,31 +21,31 @@ async def start_web_server():
     print(f"網頁保活伺服器已啟動，監聽 Port: {port}")
 
 # 2. Discord Bot 設定
-prefix = '!'
-
-intents = discord.Intents.default()
-
 class CustomBot(commands.Bot):
     async def setup_hook(self):
+        # 啟動網頁保活伺服器
         await start_web_server()
+        
+        # 👈 關鍵：必須加上這行，斜線指令才會同步到 Discord！
+        print("正在同步斜線指令到 Discord...")
+        synced = await self.tree.sync()
+        print(f"成功同步了 {len(synced)} 個斜線指令！")
 
-bot = CustomBot(command_prefix=prefix, intents=intents)
+intents = discord.Intents.default()
+bot = CustomBot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
     print(f'機器人已成功登入為 {bot.user}')
     
-    # ------------------ 設定自訂「正在遊玩」狀態 ------------------
-    # 這裡可以自由改成你想顯示的文字（例如：!choose 隨機選擇）
+    # 設定自訂「正在遊玩」狀態
     custom_status = "!choose 隨機選擇"
-    
     await bot.change_presence(
         activity=discord.Game(name=custom_status),
-        status=discord.Status.online  # 保持線上綠燈
+        status=discord.Status.online
     )
-    # -----------------------------------------------------------
+
 # 斜線指令 (/choose)
-# ---------------------------------------------------------
 @bot.tree.command(name="choose", description="隨機選擇一個選項（用空格或逗號隔開）")
 @app_commands.describe(options="請輸入選項，例如：1 2 3")
 async def slash_choose(interaction: discord.Interaction, options: str):
@@ -61,6 +61,7 @@ async def slash_choose(interaction: discord.Interaction, options: str):
     # 第一行顯示原始指令文字，第二行顯示選中的結果
     message_content = f"!choose {options}\n{selection}"
     await interaction.response.send_message(message_content)
+
 # 3. 主程式啟動
 if __name__ == "__main__":
     TOKEN = os.getenv("TOKEN")
